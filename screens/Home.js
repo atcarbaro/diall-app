@@ -7,7 +7,7 @@ import utils from '../utils/constants';
 import { Text } from 'react-native-elements';
 import { db } from '../config/firebaseConfig';
 import { useAuthentication } from '../utils/hooks/useAuthentication';
-
+import { Button } from 'react-native-elements';
 const auth = getAuth();
 
 const WelcomeScreen = ({ navigation }) => {
@@ -102,6 +102,9 @@ const WelcomeScreen = ({ navigation }) => {
                 pagingEnabled
                 onMomentumScrollEnd={handleOnScrollEnds}
             />
+            <View style={styles.buttons}>
+                <Button title="Sign out" buttonStyle={styles.control} onPress={signOut} />
+            </View>
         </View>
     );
 }
@@ -112,7 +115,7 @@ const styles = StyleSheet.create({
   },
   item: {
     width: utils.width,
-    height: utils.height * 0.9,
+    height: utils.height * 0.85,
     textAlign: 'center',
     alignItems: 'center',
     justifyContent: 'center',
@@ -127,6 +130,12 @@ const styles = StyleSheet.create({
   },
   pointsText: {
     fontSize: 20
+  },
+  buttons: {
+    height: utils.height * 0.05,
+  },
+  control: {
+    height: utils.height * 0.05,
   }
 });
 
