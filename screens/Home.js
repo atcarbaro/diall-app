@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { StyleSheet, View, FlatList } from 'react-native';
 import { getAuth, signOut as signOutFirebase } from "firebase/auth";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { doc, collection, updateDoc, query, where, getDocs } from "firebase/firestore";
 import { data } from '../utils/data'
 import utils from '../utils/constants';
 import { Text } from 'react-native-elements';
@@ -16,22 +16,19 @@ const WelcomeScreen = ({ navigation }) => {
     })
     const [selectedId, setSelectedId] = useState();
     const [counter, setCounter] = useState(10)
-    const [points, setPoints] = useState(0)
+    const [currentDoc, setCurrentDoc] = useState()
+    const [points, setPoints] = useState(0);
     const { user } = useAuthentication();
-
     const scrollRef = useRef();
 
     useEffect(() => {
-
         const fetchUserPoints = async () => {
             try {
                 if(user.email){
-                    const userPointsRef = collection(db, "user_points");
-                    const q = query(userPointsRef, where("email", "==", user.email));
+                    const q = query(collection(db, "user_points"), where("email", "==", user.email));
                     const querySnapshot = await getDocs(q);
                     querySnapshot.forEach((doc) => {
-                        console.log('doc', doc.data())
-                        // doc.data() is never undefined for query doc snapshots
+                        setCurrentDoc(doc.id)
                         setPoints(doc.data().total_points)
                     });
                 }
@@ -39,35 +36,48 @@ const WelcomeScreen = ({ navigation }) => {
                 console.error("Error adding document: ", e);
             }
         }
-
-        // call the function
         fetchUserPoints()
+    }, [user, navigation])
 
-    }, [user])
+    useEffect(() => {
+        const timer =
+          counter > 0 && setInterval(() => setCounter(counter - 1), 1000);
+
+        if(counter === 0){
+            storePoints()
+        }
+
+        return () => clearInterval(timer);
+    }, [counter,]);
+
+
+    async function storePoints() {
+        try {
+            if(currentDoc){
+                await updateDoc(doc(db, "user_points", currentDoc), {
+                    total_points: points + 5
+                });
+                setPoints(points + 5)
+            }
+        } catch (e) {
+            console.error("Error adding document: ", e);
+        }
+    }
+
+    function handleOnScrollEnds() {
+        setCounter(10)
+    }
 
     async function signOut() {
         try {
           await signOutFirebase(auth);
         } catch (error) {
-        console.log('hey', error)
           setValue({
             ...value,
             error: error.message,
           })
         }
     }
-
-    useEffect(() => {
-        const timer =
-          counter > 0 && setInterval(() => setCounter(counter - 1), 1000);
-
-          if(counter === 0){
-
-        }
-        return () => clearInterval(timer);
-
-
-    }, [counter]);
 
     const renderItem = ({item}) => {
         return (
@@ -77,10 +87,11 @@ const WelcomeScreen = ({ navigation }) => {
         );
     };
 
-    console.log('points', points)
-
     return (
         <View style={styles.container}>
+            <View style={styles.customHeader}>
+                <Text>You have earned <Text style={styles.pointsText}>{points}</Text></Text>
+            </View>
             <FlatList
                 ref={scrollRef}
                 data={data}
@@ -89,11 +100,8 @@ const WelcomeScreen = ({ navigation }) => {
                 extraData={selectedId}
                 showsVerticalScrollIndicator={false}
                 pagingEnabled
+                onMomentumScrollEnd={handleOnScrollEnds}
             />
-        {/* <Text>Home screen!</Text> */}
-        {/* <View style={styles.buttons}>
-            <Button title="Sign out" buttonStyle={styles.control} onPress={signOut} />
-        </View> */}
         </View>
     );
 }
@@ -104,15 +112,22 @@ const styles = StyleSheet.create({
   },
   item: {
     width: utils.width,
-    height: utils.height,
+    height: utils.height * 0.9,
     textAlign: 'center',
     alignItems: 'center',
     justifyContent: 'center',
   },
+  customHeader: {
+    height: utils.height * 0.1,
+    justifyContent: 'flex-end',
+    alignItems: 'center'
+  },
   title: {
     fontSize: 75,
   },
-
+  pointsText: {
+    fontSize: 20
+  }
 });
 
 export default WelcomeScreen;

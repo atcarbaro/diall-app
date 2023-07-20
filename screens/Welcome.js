@@ -7,7 +7,6 @@ const WelcomeScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <Text h1>Diall</Text>
-
       <View style={styles.buttons}>
         <Button title="Login" buttonStyle={styles.button} onPress={() => navigation.navigate('Sign In')} />
         <Button title="Create Account" type="outline" titleStyle={styles.title} buttonStyle={styles.outlineButton} onPress={() => navigation.navigate('Sign Up')} />

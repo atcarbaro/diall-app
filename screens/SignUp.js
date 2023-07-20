@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 import AuthForm from '../components/AuthForm';
+import { collection, addDoc } from "firebase/firestore";
+import { db } from '../config/firebaseConfig';
 
 const auth = getAuth();
 
@@ -23,6 +25,13 @@ const SignUpScreen = ({ navigation }) => {
 
     try {
       await createUserWithEmailAndPassword(auth, value.email, value.password);
+      await addDoc(collection(db, "user_points"), {
+        email: value.email,
+        total_points: 0
+      });
+      await addDoc(collection(db, "users"), {
+        email: value.email,
+      });
       navigation.navigate('Sign In');
     } catch (error) {
       setValue({
