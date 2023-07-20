@@ -1,18 +1,18 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
+import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 import AuthForm from '../components/AuthForm';
 
 const auth = getAuth();
 
-const SignInScreen = () => {
+const SignUpScreen = ({ navigation }) => {
   const [value, setValue] = useState({
     email: '',
     password: '',
     error: ''
   })
 
-  async function signIn() {
+  async function signUp() {
     if (value.email === '' || value.password === '') {
       setValue({
         ...value,
@@ -22,7 +22,8 @@ const SignInScreen = () => {
     }
 
     try {
-      await signInWithEmailAndPassword(auth, value.email, value.password);
+      await createUserWithEmailAndPassword(auth, value.email, value.password);
+      navigation.navigate('Sign In');
     } catch (error) {
       setValue({
         ...value,
@@ -39,8 +40,8 @@ const SignInScreen = () => {
         passwordValue={value.password}
         emailInputFunc={(text) => setValue({ ...value, email: text })}
         passwordInputFunc={(text) => setValue({ ...value, password: text })}
-        submitText="Sign in"
-        submitFunc={signIn}
+        submitText="Sign up"
+        submitFunc={signUp}
       />
     </View>
   );
@@ -54,7 +55,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-
   error: {
     marginTop: 10,
     padding: 10,
@@ -63,4 +63,4 @@ const styles = StyleSheet.create({
   }
 });
 
-export default SignInScreen;
+export default SignUpScreen;
